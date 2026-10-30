@@ -10,12 +10,12 @@ Backs up the logs of the Profile Log Manager (PLM) DayZ mod to your PC, one zip 
 4. **Unblock it:** right-click the file, choose Properties, tick **Unblock** if it is there, and press OK.
 5. **Run it:** right-click the file and choose **Run with PowerShell**. Answer the questions: a name for the server, `R` for remote, your SFTP login, `Y` if the host key is your server's, the profile folder, a backup folder, and Enter to run once a week.
 
-That is all. Every week it saves one zip per day in your backup folder. The rest of this README explains each question, the run log, and what to do when something goes wrong.
+That is all. Once a week it backs up the new logs, in one zip for each day. The rest of this README explains each question, the run log, and what to do when something goes wrong.
 
 ## Other setups
 
 - **The server runs on this PC:** WinSCP is not needed. Answer `L` for local and give the profile folder on this PC.
-- **You cannot install programs:** download WinSCP's ".NET assembly / COM library" zip from the same page instead. Unzip it into a folder of its own, for example `C:\Tools\WinSCP`. In PowerShell, run `setx WinSCP_PATH "C:\Tools\WinSCP"` with your folder, then sign out of Windows and back in. The "Portable executables" zip does not work: it lacks the file the script needs (`WinSCPnet.dll`).
+- **You cannot install programs:** download WinSCP's ".NET assembly / COM library" zip from the same page instead. Right-click the zip, choose Properties, tick **Unblock** and press OK; otherwise Windows blocks the files you unzip. Then unzip it into a folder of its own, for example `C:\Tools\WinSCP`. In PowerShell, run `setx WinSCP_PATH "C:\Tools\WinSCP"` with your folder, then sign out of Windows and back in. The "Portable executables" zip does not work: it lacks the file the script needs (`WinSCPnet.dll`).
 - **PLM is in `"Days"` mode:** the mod deletes by age and ignores `Archived.txt`. The archiver still backs up, but it cannot keep anything from being deleted. The run log says so.
 - **Your host gives only a web file manager, no SFTP:** the archiver cannot reach your files. Turn on PLM's `PLM_GatherModLogs` instead. The mod then moves every log into one folder per day, `<PLM_LogFolder>/<day>/`, laid out like the zips below, and you download that folder by hand.
 
@@ -81,6 +81,7 @@ Failures you may meet:
 - `FAILED: settings for <name> could not be read - run setup` - the file in `servers\` is damaged. Run setup and enter that server again, or delete it with `D`.
 - `FAILED: the backup folder '...' is not a full path - run setup again` (or `the profile folder`) - the saved folder is relative, which a scheduled run cannot use. Run setup for that server again and press Enter at each question; the folder is then saved as a full path.
 - `FAILED: WinSCP not found - install it from winscp.net` - install WinSCP from https://winscp.net/eng/downloads.php, or see "Other setups" if you cannot install programs.
+- `FAILED: Windows has blocked WinSCPnet.dll - unblock the WinSCP zip and unzip it again` - the WinSCP zip was not unblocked before it was unzipped (see "Other setups"). Delete the unzipped folder, unblock the zip, and unzip it again.
 - `FAILED: the server's host key has changed, nothing copied or written ...` - see the host key step above. Do not rerun setup unless you know why the key changed.
 - `FAILED: could not open the source: ...` - could not connect or log in. The text after the colon says what the connection said.
 - `FAILED: could not read ProfileLogManager/Settings.json ...` or `no ProfileLogManager/Index.txt ...` - the mod has not run yet, or the profile folder in setup is wrong.

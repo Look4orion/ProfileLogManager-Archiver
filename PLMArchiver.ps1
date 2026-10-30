@@ -236,7 +236,15 @@ function Import-PLMAWinSCP() {
   if ($script:PLMA_WinSCPLoaded) { return }
   $dir = Find-PLMAWinSCP
   if ($null -eq $dir) { throw (New-PLMAFinalError 'WinSCP not found - install it from winscp.net') }
-  Add-Type -Path (Join-Path $dir 'WinSCPnet.dll')
+  $dll = Join-Path $dir 'WinSCPnet.dll'
+  try {
+    Add-Type -Path $dll
+  } catch {
+    if (Get-Item -LiteralPath $dll -Stream 'Zone.Identifier' -ErrorAction SilentlyContinue) {
+      throw (New-PLMAFinalError 'Windows has blocked WinSCPnet.dll - unblock the WinSCP zip and unzip it again')
+    }
+    throw
+  }
   $script:PLMA_WinSCPLoaded = $true
 }
 
