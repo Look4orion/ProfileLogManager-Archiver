@@ -7,7 +7,7 @@ Backs up the logs of the Profile Log Manager (PLM) DayZ mod to your PC, one zip 
 1. **On the server:** PLM must have run once. For logs to be deleted only after they are backed up, set `PLM_DeleteMode` to `"Archived"` in `ProfileLogManager/Settings.json`.
 2. **Install WinSCP** from https://winscp.net/eng/downloads.php (the main download button).
 3. **Download `PLMArchiver.ps1`** from the [latest release](https://github.com/Look4orion/ProfileLogManager-Archiver/releases/latest) into a folder of its own, for example `C:\PLMArchiver`. Its settings and logs are kept next to it, so pick a folder you will not move.
-4. **Unblock it:** right-click the file, choose Properties, tick **Unblock** if it is there, and press OK.
+4. **Unblock it:** right-click the file, choose Properties, tick **Unblock** if it is there, and press OK. If the window later opens and closes at once, the file is still blocked.
 5. **Run it:** right-click the file and choose **Run with PowerShell**. Answer the questions: a name for the server, `R` for remote, your SFTP login, `Y` if the host key is your server's, the profile folder, a backup folder, and Enter to run once a week.
 
 That is all. Once a week it backs up the new logs, in one zip for each day. The rest of this README explains each question, the run log, and what to do when something goes wrong.
