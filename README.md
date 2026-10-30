@@ -1,33 +1,29 @@
 # Profile Log Manager Archiver
 
-A small PowerShell script that backs up the logs your DayZ server's Profile Log Manager (PLM) mod has tidied, and tells the mod which of them are safe to delete.
+Backs up the logs of the Profile Log Manager (PLM) DayZ mod to your PC, one zip per day, and tells the mod which logs are safe to delete. It is one PowerShell script that you can read; the only other thing it needs is WinSCP.
 
-It copies every log listed in the server's `ProfileLogManager/Index.txt`, checks each copy, packs the copies into one zip per day, and only then lists them in `Archived.txt`. With PLM set to `"Archived"` delete mode, the mod deletes exactly the logs listed there at its next start, and nothing else.
+## Quick start
 
-You need nothing but Windows and, for a rented server, WinSCP. There is no exe and no Python. The whole tool is the one file `PLMArchiver.ps1`, and you can read every line of it.
+1. **On the server:** PLM must have run once. For logs to be deleted only after they are backed up, set `PLM_DeleteMode` to `"Archived"` in `ProfileLogManager/Settings.json`.
+2. **Install WinSCP** from https://winscp.net/eng/downloads.php (the main download button).
+3. **Download `PLMArchiver.ps1`** from the [latest release](https://github.com/Look4orion/ProfileLogManager-Archiver/releases/latest) into a folder of its own, for example `C:\PLMArchiver`. Its settings and logs are kept next to it, so pick a folder you will not move.
+4. **Unblock it:** right-click the file, choose Properties, tick **Unblock** if it is there, and press OK.
+5. **Run it:** right-click the file and choose **Run with PowerShell**. Answer the questions: a name for the server, `R` for remote, your SFTP login, `Y` if the host key is your server's, the profile folder, a backup folder, and Enter to run once a week.
 
-## Before you start
+That is all. Every week it saves one zip per day in your backup folder. The rest of this README explains each question, the run log, and what to do when something goes wrong.
 
-- **Profile Log Manager** must be on your server and must have run at least once, so that `ProfileLogManager/Settings.json` and `Index.txt` exist in the server's profile folder.
-- **WinSCP** is needed for a rented server (remote mode), where the script reaches your files over SFTP. It is free, from winscp.net. It is not needed if you run the script on the server machine itself (local mode). Two downloads work:
-  - **The installation package** (the main download button). Install it and the script finds it on its own.
-  - **The ".NET assembly / COM library" zip**, if you cannot install programs on your PC. Unzip it into a folder of its own, for example `C:\Tools\WinSCP`. Then tell the script where it is: in PowerShell, run `setx WinSCP_PATH "C:\Tools\WinSCP"` with your folder, and sign out of Windows and back in.
+## Other setups
 
-  The "Portable executables" zip does not work: it lacks the file the script needs (`WinSCPnet.dll`).
-- **For logs to be deleted after they are backed up**, set `PLM_DeleteMode` to `"Archived"` in PLM's `Settings.json`. In `"Days"` mode the mod deletes by age and ignores `Archived.txt`; the archiver still backs up, but it cannot keep anything from being deleted. The run log tells you when this is the case.
-- **Remote mode** also needs an SFTP login (host, port, user name, password) from your host.
+- **The server runs on this PC:** WinSCP is not needed. Answer `L` for local and give the profile folder on this PC.
+- **You cannot install programs:** download WinSCP's ".NET assembly / COM library" zip from the same page instead. Unzip it into a folder of its own, for example `C:\Tools\WinSCP`. In PowerShell, run `setx WinSCP_PATH "C:\Tools\WinSCP"` with your folder, then sign out of Windows and back in. The "Portable executables" zip does not work: it lacks the file the script needs (`WinSCPnet.dll`).
+- **PLM is in `"Days"` mode:** the mod deletes by age and ignores `Archived.txt`. The archiver still backs up, but it cannot keep anything from being deleted. The run log says so.
+- **Your host gives only a web file manager, no SFTP:** the archiver cannot reach your files. Turn on PLM's `PLM_GatherModLogs` instead. The mod then moves every log into one folder per day, `<PLM_LogFolder>/<day>/`, laid out like the zips below, and you download that folder by hand.
 
-If your host gives only a web file manager and no SFTP, the archiver cannot reach your files. Turn on PLM's `PLM_GatherModLogs` instead. The mod then moves every log into one folder per day, `<PLM_LogFolder>/<day>/`, laid out like the zips below. Download that day folder by hand from the file manager.
+# Reference
 
-## Get it and start it
+### Setup questions
 
-1. Download `PLMArchiver.ps1` from the download page into a folder of its own, for example `C:\PLMArchiver`. Settings and logs are kept next to the script, so keep it in a folder you will not move.
-2. If you downloaded it, Windows may mark it as blocked. Right-click the file, choose Properties, tick **Unblock** at the bottom if it is there, and press OK.
-3. Right-click the file and choose **Run with PowerShell**.
-
-The first start asks the setup questions. Running it again later asks the same questions with your saved answers as defaults: press Enter to keep an answer, or type a new one.
-
-## Setup questions
+The first start asks these questions. Running the script again later asks them again with your saved answers as defaults: press Enter to keep an answer, or type a new one.
 
 1. **Which server.** On the first start, give a short name for it (letters, digits, `_` and `-`, up to 20), for example `MyServer`. Later you pick a saved one by number, `N` for a new one, or `D` to delete one. You can keep several servers in one copy of the script.
 2. **Remote or local.** `R` for a rented server reached over SFTP, `L` for a server on the PC the script runs on.
@@ -39,7 +35,7 @@ The first start asks the setup questions. Running it again later asks the same q
 
 Setup then tests the connection and prints the `PLM_LogFolder` and `PLM_DeleteMode` it found. If the test fails it tells you why and asks whether to save anyway. At the very end it waits with `Press Enter to close`, so you can read the last messages before the window goes away.
 
-## Where things go
+### Where things go
 
 Backups, one zip per server and day, named by the day folder's date:
 
@@ -60,7 +56,7 @@ Next to the script:
 - `logs\<server>\` holds one run log per run, named `PLMArchiver_<date>_<time>.log`. The last 20 are kept.
 - `work\` holds temporary files while a run is going.
 
-## Reading the run log
+### Reading the run log
 
 The first line of each run log is the result, also printed in the window:
 
@@ -84,7 +80,7 @@ Failures you may meet:
 - `FAILED: another run of <name> is going` - a run of that server is already in progress. Nothing was written. A lock left behind by a run that was stopped (`work\<name>.lock`) is cleared by the next run on its own.
 - `FAILED: settings for <name> could not be read - run setup` - the file in `servers\` is damaged. Run setup and enter that server again, or delete it with `D`.
 - `FAILED: the backup folder '...' is not a full path - run setup again` (or `the profile folder`) - the saved folder is relative, which a scheduled run cannot use. Run setup for that server again and press Enter at each question; the folder is then saved as a full path.
-- `FAILED: WinSCP not found - install it from winscp.net` - install WinSCP from its installation package, or set `WinSCP_PATH` to the folder of the unzipped ".NET assembly / COM library" zip (see "Before you start").
+- `FAILED: WinSCP not found - install it from winscp.net` - install WinSCP from https://winscp.net/eng/downloads.php, or see "Other setups" if you cannot install programs.
 - `FAILED: the server's host key has changed, nothing copied or written ...` - see the host key step above. Do not rerun setup unless you know why the key changed.
 - `FAILED: could not open the source: ...` - could not connect or log in. The text after the colon says what the connection said.
 - `FAILED: could not read ProfileLogManager/Settings.json ...` or `no ProfileLogManager/Index.txt ...` - the mod has not run yet, or the profile folder in setup is wrong.
@@ -92,7 +88,7 @@ Failures you may meet:
 - `FAILED: day <date> not saved: <zip> is not a readable zip (...)` (or another reason after `not saved:`) - that day was left as it was and its logs were not listed. Other days carry on. Check the zip named.
 - `FAILED: Archived.txt could not be written: ...` - the backup is fine, but the server refused the list. The next run tries again.
 
-## The schedule
+### The schedule
 
 If you set hours above 0, setup makes one Windows scheduled task per server, named `PLMArchiver_<name>`. It runs under your own Windows user, with no admin rights needed. The first run is about five minutes after setup, then every N hours. If the PC was off at a run time, it runs as soon as it can afterwards.
 
@@ -106,20 +102,20 @@ You can also run a server by hand at any time:
 
 The exit code is 0 for OK, 1 for OK with warnings, 2 for FAILED.
 
-## What it does to your server
+### What it does to your server
 
 It reads `Settings.json`, `Index.txt`, any waiting `Archived.txt`, and the logs it backs up. The only things it writes on the server are `ProfileLogManager/Archived.tmp` (a temporary upload) and `ProfileLogManager/Archived.txt`. It never deletes or renames a server log; that is the mod's job. If a server refuses to rename the new list over an existing `Archived.txt`, the script removes the old `Archived.txt` just before renaming. A server start in that gap finds no `Archived.txt` and deletes nothing.
 
 A log is listed in `Archived.txt` only when it is in its day zip, with the server's size and a checked copy. Lines already waiting in `Archived.txt` are kept, and no line appears twice.
 
-## Deleting a server
+### Deleting a server
 
 Run the script, choose `D`, pick the server by its number, then confirm with `Y`. This removes its saved settings and its scheduled task. Your backups and run logs are left alone.
 
-## Your password
+### Your password
 
 The password is stored with Windows data protection, in your server's file under `servers\`. Only your Windows user, on this PC, can read it. Copying the file to another PC or user does not work; run setup there instead. The password is never written to a log or shown on screen.
 
-## Licence
+### Licence
 
 MIT. See `LICENSE`.
