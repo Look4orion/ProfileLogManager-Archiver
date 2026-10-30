@@ -1,6 +1,6 @@
 # Profile Log Manager Archiver
 
-Backs up the logs of the Profile Log Manager (PLM) DayZ mod to your PC, one zip per day, and tells the mod which logs are safe to delete. It is one PowerShell script that you can read; the only other thing it needs is WinSCP.
+Backs up the logs of the Profile Log Manager (PLM) DayZ mod to your PC, one zip per day, and tells the mod which logs are safe to delete. It is one PowerShell script that you can read. For a rented server it also needs WinSCP; on the server's own PC it needs nothing else.
 
 ## Quick start
 
